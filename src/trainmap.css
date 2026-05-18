@@ -1,8 +1,11 @@
 #trainmap-container {
   margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
 }
 
 #trainmap-toggle {
+  margin-left: auto;
   margin-bottom: 0;
 }
 
