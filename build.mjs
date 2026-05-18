@@ -16,7 +16,7 @@ const ctx = await esbuild.context({
   bundle: true,
   format: "iife",
   target: "es2022",
-  sourcemap: "inline",
+  sourcemap: watch ? "inline" : false,
   logLevel: "info",
   define: {
     __EXT_NAME__: JSON.stringify(manifest.name),

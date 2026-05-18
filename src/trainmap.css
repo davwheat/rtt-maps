@@ -26,6 +26,9 @@
   }
 }
 
-html[data-theme="dark"] .maplibregl-ctrl-attrib.maplibregl-compact {
-  background: #0a2c33;
+html[data-theme="dark"] {
+  .maplibregl-ctrl-attrib.maplibregl-compact {
+    background: #0a2c33;
+    color: #fff;
+  }
 }
