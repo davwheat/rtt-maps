@@ -177,6 +177,19 @@ if (bannedModes.some((m) => m === serviceType)) {
     (document.querySelector("#trainmap-map") as HTMLDivElement) || document.createElement("div");
   mapContainer.id = "trainmap-map";
 
+  const reportLink =
+    (document.querySelector("#trainmap-report") as HTMLAnchorElement) ||
+    document.createElement("a");
+  reportLink.id = "trainmap-report";
+  reportLink.target = "_blank";
+  reportLink.rel = "noopener";
+  reportLink.textContent = "Report a map data issue";
+  reportLink.href = `https://github.com/davwheat/rtt-maps/issues/new?title=${encodeURIComponent(
+    `Map data issue: ${namespacedServiceId} on ${departureDate}`,
+  )}&body=${encodeURIComponent(
+    `Service: ${namespacedServiceId}\nDate: ${departureDate}\nURL: ${location.href}\n\nDescribe the issue:\n`,
+  )}`;
+
   let mapShown = false;
 
   let map: maplibregl.Map | null = null;
@@ -242,6 +255,7 @@ if (bannedModes.some((m) => m === serviceType)) {
 
   container.appendChild(mapShowHideToggle);
   container.appendChild(mapContainer);
+  mapContainer.appendChild(reportLink);
 
   siblingBefore?.insertAdjacentElement("afterend", container);
 
