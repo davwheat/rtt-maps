@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "RTT Maps",
+  "version": "0.1.0",
+  "description": "Augments Realtime Trains service pages with a simple map.",
+  "content_scripts": [
+    {
+      "matches": ["https://www.realtimetrains.co.uk/service/gb-nr:*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "rtt-maps@davwheat.dev",
+      "strict_min_version": "128.0"
+    }
+  }
+}
