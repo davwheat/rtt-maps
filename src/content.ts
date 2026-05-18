@@ -10,14 +10,39 @@ const LOG_PREFIX = `[${__EXT_NAME__} ${__EXT_VERSION__}]`;
 
 console.log(`${LOG_PREFIX} loaded on`, location.href);
 
-const bannedModes = ["Rail Replacement Bus", "Timetabled Bus service", "Bus"];
+const UNSUPPORTED_MODES = ["Rail Replacement Bus", "Timetabled Bus service", "Bus"];
+const PASSENGER_MODES = [
+  "Ordinary Passenger",
+  "Express Passenger",
+  "London Underground or Metro",
+  "Mixed Train",
+  "Channel Tunnel",
+  "International",
+  "Motorail",
+  "Sleeper (Domestic)",
+  "Sleeper (European)",
+  "Unadvertised Ordinary Passenger",
+  "Unadvertised Express",
+  "Staff Train",
+  "Empty Coaching Stock",
+  "ECS, London Underground/Metro",
+  "ECS and Staff",
+];
+
 const serviceType = document
   .querySelector(".detail-info .infopanel li:has(.glyphicons-folder-open)")
   ?.textContent?.trim();
 
-if (bannedModes.some((m) => m === serviceType)) {
+if (UNSUPPORTED_MODES.some((m) => m === serviceType)) {
   console.log(`${LOG_PREFIX} Map not supported for service type ${serviceType}`);
 } else {
+  const isPassengerService = PASSENGER_MODES.some((m) => m === serviceType);
+  if (!isPassengerService) {
+    console.log(
+      `${LOG_PREFIX} Service type ${serviceType} is not a passenger service, map may be inaccurate or unavailable`,
+    );
+  }
+
   const pageUrl = new URL(location.href);
 
   // https://www.realtimetrains.co.uk/service/gb-nr:G15014/2026-05-18/detailed
@@ -206,6 +231,12 @@ if (bannedModes.some((m) => m === serviceType)) {
     `Service: ${namespacedServiceId}\nDate: ${departureDate}\nURL: ${location.href}\n\nDescribe the issue:\n`,
   )}`;
 
+  const nonPaxWarning =
+    (document.querySelector("#trainmap-nonpax-warning") as HTMLSpanElement) ||
+    document.createElement("span");
+  nonPaxWarning.id = "trainmap-nonpax-warning";
+  nonPaxWarning.textContent = "Non-passenger services may be inaccurately mapped";
+
   const errorEl =
     (document.querySelector("#trainmap-error") as HTMLDivElement) || document.createElement("div");
   errorEl.id = "trainmap-error";
@@ -292,6 +323,9 @@ if (bannedModes.some((m) => m === serviceType)) {
   container.appendChild(mapContainer);
   mapContainer.appendChild(reportLink);
   mapContainer.appendChild(errorEl);
+  if (!isPassengerService) {
+    mapContainer.appendChild(nonPaxWarning);
+  }
 
   siblingBefore?.insertAdjacentElement("afterend", container);
 
