@@ -36,6 +36,8 @@ if (bannedModes.some((m) => m === serviceType)) {
     points: [number, number][];
   };
 
+  type PathResult = { ok: true; data: PathResponse } | { ok: false; error: string };
+
   const PATH_SOURCE_ID = "trainmap-service-path";
   const PATH_LAYER_ID = "trainmap-service-path-line";
 
@@ -44,10 +46,10 @@ if (bannedModes.some((m) => m === serviceType)) {
     [1.77, 60.86],
   ];
 
-  let pathFetchPromise: Promise<PathResponse | null> | null = null;
+  let pathFetchPromise: Promise<PathResult> | null = null;
   let initialFitDone = false;
 
-  function fetchServicePath(): Promise<PathResponse | null> {
+  function fetchServicePath(): Promise<PathResult> {
     if (pathFetchPromise) return pathFetchPromise;
 
     if (serviceNamespace !== "gb-nr" || !serviceUid || !departureDateValid) {
@@ -56,7 +58,10 @@ if (bannedModes.some((m) => m === serviceType)) {
         serviceUid,
         departureDate,
       });
-      pathFetchPromise = Promise.resolve(null);
+      pathFetchPromise = Promise.resolve({
+        ok: false,
+        error: "Map unavailable: unable to identify this service from the page URL.",
+      });
       return pathFetchPromise;
     }
 
@@ -65,21 +70,32 @@ if (bannedModes.some((m) => m === serviceType)) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ serviceUid, departureDate }),
     })
-      .then(async (res) => {
+      .then(async (res): Promise<PathResult> => {
         if (!res.ok) {
           console.error(`${LOG_PREFIX} Path fetch failed: ${res.status} ${res.statusText}`);
-          return null;
+          return {
+            ok: false,
+            error: `Unable to load map data (HTTP ${res.status}${
+              res.statusText ? ` ${res.statusText}` : ""
+            }).`,
+          };
         }
         const data = (await res.json()) as PathResponse;
         if (!data.success || !data.points?.length) {
           console.error(`${LOG_PREFIX} Path fetch returned no usable path`, data);
-          return null;
+          return {
+            ok: false,
+            error: "No map path is available for this service.",
+          };
         }
-        return data;
+        return { ok: true, data };
       })
-      .catch((err) => {
+      .catch((err): PathResult => {
         console.error(`${LOG_PREFIX} Path fetch error:`, err);
-        return null;
+        return {
+          ok: false,
+          error: "Unable to load map data — check your network connection and try again.",
+        };
       });
 
     return pathFetchPromise;
@@ -190,6 +206,19 @@ if (bannedModes.some((m) => m === serviceType)) {
     `Service: ${namespacedServiceId}\nDate: ${departureDate}\nURL: ${location.href}\n\nDescribe the issue:\n`,
   )}`;
 
+  const errorEl =
+    (document.querySelector("#trainmap-error") as HTMLDivElement) || document.createElement("div");
+  errorEl.id = "trainmap-error";
+  errorEl.hidden = true;
+
+  function showMapError(message: string) {
+    errorEl.textContent = message;
+    errorEl.hidden = false;
+  }
+  function hideMapError() {
+    errorEl.hidden = true;
+  }
+
   let mapShown = false;
 
   let map: maplibregl.Map | null = null;
@@ -219,8 +248,14 @@ if (bannedModes.some((m) => m === serviceType)) {
 
       const tryRender = (trigger: string) => {
         if (!map || !styleReady) return;
-        pathFetchPromise?.then((path) => {
-          if (path && map) renderServicePath(map, path);
+        pathFetchPromise?.then((result) => {
+          if (!map) return;
+          if (result.ok) {
+            hideMapError();
+            renderServicePath(map, result.data);
+          } else {
+            showMapError(result.error);
+          }
         });
       };
 
@@ -256,6 +291,7 @@ if (bannedModes.some((m) => m === serviceType)) {
   container.appendChild(mapShowHideToggle);
   container.appendChild(mapContainer);
   mapContainer.appendChild(reportLink);
+  mapContainer.appendChild(errorEl);
 
   siblingBefore?.insertAdjacentElement("afterend", container);
 
