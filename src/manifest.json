@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "RTT Maps",
   "version": "0.1.0",
-  "description": "Augments Realtime Trains service pages with a simple map.",
+  "description": "Augments Realtime Trains service pages with an interactive route map.",
   "content_scripts": [
     {
       "matches": ["https://www.realtimetrains.co.uk/service/gb-nr:*"],
