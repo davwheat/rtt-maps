@@ -47,6 +47,7 @@ jobs:
         with:
           name: ${{ steps.meta.outputs.zipname }}
           path: ${{ steps.meta.outputs.zipname }}
+          archive: false
           retention-days: 28
 
       - name: Attach to release
