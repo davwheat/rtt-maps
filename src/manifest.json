@@ -17,8 +17,7 @@
       "id": "rtt-maps@davwheat.dev",
       "strict_min_version": "128.0",
       "data_collection_permissions": {
-        "required": [],
-        "optional": []
+        "required": ["none"]
       }
     }
   }
