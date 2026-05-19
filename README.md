@@ -4,6 +4,10 @@ A browser extension that augments [Realtime Trains](https://www.realtimetrains.c
 
 Built with [MapLibre GL](https://maplibre.org/) and packaged as a Manifest V3 WebExtension targeting Firefox 128+, and modern Chrome versions.
 
+[Download from the Firefox Add-ons store](https://addons.mozilla.org/en-GB/firefox/addon/rtt-maps/).
+
+[Download from the Chrome Web Store](https://chromewebstore.google.com/detail/fndgmiiepbahlpbkdkpbfhdmdlaekeee).
+
 ## Building locally
 
 Requires [pnpm](https://pnpm.io/).
