@@ -10,6 +10,15 @@ const LOG_PREFIX = `[${__EXT_NAME__} ${__EXT_VERSION__}]`;
 
 console.log(`${LOG_PREFIX} loaded on`, location.href);
 
+const pageUrl = new URL(location.href);
+
+// https://www.realtimetrains.co.uk/service/gb-nr:G15014/2026-05-18/detailed
+const pathParts = pageUrl.pathname.split("/");
+const namespacedServiceId = pathParts[2] ?? "";
+const departureDate = pathParts[3] ?? "";
+
+const isDetailed = pathParts[4] === "detailed";
+
 const UNSUPPORTED_MODES = ["Rail Replacement Bus", "Timetabled Bus service", "Bus"];
 const PASSENGER_MODES = [
   "Ordinary Passenger",
@@ -33,22 +42,27 @@ const serviceType = document
   .querySelector(".detail-info .infopanel li:has(.glyphicons-folder-open)")
   ?.textContent?.trim();
 
-if (UNSUPPORTED_MODES.some((m) => m === serviceType)) {
+const isUnsupportedType =
+  // unsupported mode in detailed
+  (isDetailed && UNSUPPORTED_MODES.some((m) => m === serviceType)) ||
+  // or has bus icon in simple
+  (!isDetailed && !!document.querySelector("#servicetitle:has(.glyphicons-bus)"));
+
+if (isUnsupportedType) {
   console.log(`${LOG_PREFIX} Map not supported for service type ${serviceType}`);
 } else {
-  const isPassengerService = PASSENGER_MODES.some((m) => m === serviceType);
+  const isPassengerService =
+    // non-pax mode in detailed
+    (isDetailed && PASSENGER_MODES.some((m) => m === serviceType)) ||
+    // or no location list in simple
+    (!isDetailed &&
+      !document.querySelector("#detailpane .callout.service:not(:has(> .locationlist))"));
+
   if (!isPassengerService) {
     console.log(
       `${LOG_PREFIX} Service type ${serviceType} is not a passenger service, map may be inaccurate or unavailable`,
     );
   }
-
-  const pageUrl = new URL(location.href);
-
-  // https://www.realtimetrains.co.uk/service/gb-nr:G15014/2026-05-18/detailed
-  const pathParts = pageUrl.pathname.split("/");
-  const namespacedServiceId = pathParts[2] ?? "";
-  const departureDate = pathParts[3] ?? "";
 
   const [serviceNamespace, serviceUid] = namespacedServiceId.split(":");
   const departureDateValid = /^\d{4}-\d{2}-\d{2}$/.test(departureDate);
@@ -175,25 +189,27 @@ if (UNSUPPORTED_MODES.some((m) => m === serviceType)) {
     }
 
     if (!initialFitDone) {
-      initialFitDone = true;
-      let minLon = Infinity;
-      let minLat = Infinity;
-      let maxLon = -Infinity;
-      let maxLat = -Infinity;
-      for (const [lon, lat] of path.points) {
-        if (lon < minLon) minLon = lon;
-        if (lat < minLat) minLat = lat;
-        if (lon > maxLon) maxLon = lon;
-        if (lat > maxLat) maxLat = lat;
-      }
-      m.resize();
-      m.fitBounds(
-        [
-          [minLon, minLat],
-          [maxLon, maxLat],
-        ],
-        { padding: 60, animate: false, linear: true },
-      );
+      setTimeout(() => {
+        initialFitDone = true;
+        let minLon = Infinity;
+        let minLat = Infinity;
+        let maxLon = -Infinity;
+        let maxLat = -Infinity;
+        for (const [lon, lat] of path.points) {
+          if (lon < minLon) minLon = lon;
+          if (lat < minLat) minLat = lat;
+          if (lon > maxLon) maxLon = lon;
+          if (lat > maxLat) maxLat = lat;
+        }
+        m.resize();
+        m.fitBounds(
+          [
+            [minLon, minLat],
+            [maxLon, maxLat],
+          ],
+          { padding: 60, animate: false, linear: true },
+        );
+      }, 200);
     }
   }
 

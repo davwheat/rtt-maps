@@ -18,9 +18,9 @@
   pointer-events: none;
 
   transition:
-    margin-top 0.5s ease-in-out,
-    height 0.5s ease-in-out,
-    opacity 0.5s ease-in-out;
+    margin-top 0.25s ease-in-out,
+    height 0.25s ease-in-out,
+    opacity 0.25s ease-in-out;
 
   &.shown {
     height: 40dvh;
