@@ -1,6 +1,6 @@
 {
   "name": "rtt-maps",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Browser extension that augments Realtime Trains service pages with a simple map.",
   "type": "module",
